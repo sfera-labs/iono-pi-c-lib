@@ -21,7 +21,7 @@ Enable SPI:
     
 Select: Advanced Options -> SPI -> enable
 
-If using 1-Wire bus devices (e.g. DS18B20 temperature sensors) on the TTL1 pin, enable thet too:
+If using 1-Wire bus devices (e.g. DS18B20 temperature sensors) on the TTL1 pin, enable that too:
 
 Select: Advanced Options -> 1-wire -> enable
 
@@ -42,7 +42,7 @@ If you don't have git installed:
 
     $ sudo apt-get install git-core
     
-Download ionoPi using git:
+Download ionoPi (which includes wiringPi) using git:
 
     $ git clone --recursive https://github.com/sfera-labs/iono-pi-c-lib.git
     
