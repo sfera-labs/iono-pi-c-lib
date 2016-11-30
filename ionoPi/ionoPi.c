@@ -118,6 +118,13 @@ int ionoPiSetup() {
 /*
  *
  */
+void ionoPiPinMode(int pin, int mode) {
+	pinMode(pin, mode);
+}
+
+/*
+ *
+ */
 void ionoPiDigitalWrite(int output, int value) {
 	digitalWrite(output, value);
 }
@@ -204,37 +211,42 @@ void di6InterruptCB() {
 /*
  *
  */
-int ionoPiDigitalInterrupt(int di, void (*callBack)(int, int)) {
+int ionoPiDigitalInterrupt(int di, int mode, void (*callBack)(int, int)) {
 	int idx;
+	void (*isrFunc)(void);
 	switch (di) {
 	case DI1:
 		idx = 0;
-		wiringPiISR(di, INT_EDGE_BOTH, di1InterruptCB);
+		isrFunc = di1InterruptCB;
 		break;
 	case DI2:
 		idx = 1;
-		wiringPiISR(di, INT_EDGE_BOTH, di2InterruptCB);
+		isrFunc = di2InterruptCB;
 		break;
 	case DI3:
 		idx = 2;
-		wiringPiISR(di, INT_EDGE_BOTH, di3InterruptCB);
+		isrFunc = di3InterruptCB;
 		break;
 	case DI4:
 		idx = 3;
-		wiringPiISR(di, INT_EDGE_BOTH, di4InterruptCB);
+		isrFunc = di4InterruptCB;
 		break;
 	case DI5:
 		idx = 4;
-		wiringPiISR(di, INT_EDGE_BOTH, di5InterruptCB);
+		isrFunc = di5InterruptCB;
 		break;
 	case DI6:
 		idx = 5;
-		wiringPiISR(di, INT_EDGE_BOTH, di6InterruptCB);
+		isrFunc = di6InterruptCB;
 		break;
 	default:
 		return FALSE;
 	}
 
+	pinMode(di, INPUT);
+	if (callBack != NULL) {
+		wiringPiISR(di, mode, isrFunc);
+	}
 	digitalInterruptCB[idx] = callBack;
 
 	return TRUE;
@@ -348,13 +360,13 @@ int ionoPi1WireBusGetDevices(char*** ids) {
  *
  */
 int ionoPi1WireBusReadTemperature(const char* deviceId, int *temp) {
-	char path[50];
-	snprintf(path, 50, "%s%s%s", ONEWIRE_DEVICES_PATH, deviceId, "/w1_slave");
 	FILE *fp;
+	char path[50];
 	char line[50];
 
-	fp = fopen(path, "r");
+	snprintf(path, 50, "%s%s%s", ONEWIRE_DEVICES_PATH, deviceId, "/w1_slave");
 
+	fp = fopen(path, "r");
 	if (fp == NULL) {
 		return FALSE;
 	}

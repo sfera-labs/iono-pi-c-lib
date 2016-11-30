@@ -13,3 +13,4 @@
 ehthumbs.db
 Thumbs.db
 *.lck
+/Debug/

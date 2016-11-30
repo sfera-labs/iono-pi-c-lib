@@ -53,30 +53,48 @@
 #define AI3		0b10000000 // MCP_CH2
 #define AI4		0b11000000 // MCP_CH3
 
-#define	LOW		0
-#define	HIGH	1
-
-#define ON		HIGH
-#define OFF		LOW
-
-#define CLOSED	HIGH
-#define OPEN	LOW
-
-#ifndef	TRUE
-#  define	TRUE	(1==1)
-#  define	FALSE	(!TRUE)
+#ifndef	INPUT
+#define	INPUT	0
+#define	OUTPUT	1
 #endif
 
-extern int ionoPiSetup(void);
+#ifndef	LOW
+#define	LOW		0
+#define	HIGH	1
+#endif
+
+#ifndef	ON
+#define ON		HIGH
+#define OFF		LOW
+#endif
+
+#ifndef	CLOSED
+#define CLOSED	HIGH
+#define OPEN	LOW
+#endif
+
+#ifndef	TRUE
+#define	TRUE	(1==1)
+#define	FALSE	(!TRUE)
+#endif
+
+#ifndef	INT_EDGE_FALLING
+#define	INT_EDGE_FALLING	1
+#define	INT_EDGE_RISING		2
+#define	INT_EDGE_BOTH		3
+#endif
+
+extern int ionoPiSetup();
+extern void ionoPiPinMode(int pin, int mode);
 extern void ionoPiDigitalWrite(int output, int value);
 extern int ionoPiDigitalRead(int di);
 extern float ionoPiAnalogRead(int ai);
-extern int ionoPiDigitalInterrupt(int di, void (*callBack)(int, int));
+extern int ionoPiDigitalInterrupt(int di, int mode, void (*callBack)(int, int));
+extern int ionoPi1WireBusGetDevices(char*** ids);
+extern int ionoPi1WireBusReadTemperature(const char* deviceId, int *temp);
 extern int ionoPi1WireMaxDetectRead(const int ttl, const int attempts,
 		int *temp, int *rh);
-extern int ionoPi1WireBusReadTemperature(const char* deviceId, int *temp);
 extern int ionoPiWiegandMonitor(int interface,
 		int (*callBack)(int, int, uint64_t));
-extern int ionoPi1WireBusGetDevices(char*** ids);
 
 #endif /* IONOPI_H_INCLUDED */
