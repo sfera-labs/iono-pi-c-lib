@@ -226,7 +226,8 @@ int main(int argc, char *argv[]) {
 						ok = 1;
 					} else if (argc == 3 && strcmp(argv[2], "-f") == 0) {
 						printDigitalValue(dix, ionoPiDigitalRead(dix));
-						ionoPiDigitalInterrupt(dix, printDigitalValue);
+						ionoPiDigitalInterrupt(dix, INT_EDGE_BOTH,
+								printDigitalValue);
 						ok = 1;
 						for (;;) {
 							sleep(1);
@@ -277,7 +278,7 @@ int main(int argc, char *argv[]) {
 						"   1wire bus       Print the list of device IDs found on the 1-Wire bus\n"
 						"   1wire bus <id>  Print the temperature value (°C) read from 1-Wire device <id>\n"
 						"   1wire ttl<n>    Print temperature (°C) and humidity (%%) values read from the\n"
-						"                   MaxDetect 1-wire sensor on TTL<n> (N=1..4)\n"
+						"                   MaxDetect 1-Wire sensor on TTL<n> (<n>=1..4)\n"
 						"   wiegand <n>     Wait for data to be available on Wiegand interface <n> (<n>=1|2)\n"
 						"                   and print number of bits and value read\n"
 						"   wiegand <n> -f  Continuously print number of bits and value read from Wiegand\n"
