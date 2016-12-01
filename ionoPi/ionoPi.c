@@ -464,6 +464,9 @@ void w2Data1() {
  *
  */
 int ionoPiWiegandMonitor(int interface, int (*callBack)(int, int, uint64_t)) {
+	if (callBack == NULL) {
+		return FALSE;
+	}
 	struct Wiegand* w;
 	if (interface == 1) {
 		w = &w1;
