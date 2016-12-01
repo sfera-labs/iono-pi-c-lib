@@ -108,10 +108,10 @@ int main(int argc, char *argv[]) {
 					ok = 1;
 				} else if (argc == 4) {
 					int temp;
-					if (ionoPi1WireBusReadTemperature(argv[3], &temp)) {
+					if (ionoPi1WireBusReadTemperature(argv[3], 3, &temp)) {
 						printf("%.3f\n", temp / 1000.0);
 					} else {
-						fprintf(stderr, "1-wire bus error\n");
+						fprintf(stderr, "1-Wire bus error\n");
 					}
 					ok = 1;
 				}

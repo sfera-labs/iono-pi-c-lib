@@ -66,10 +66,6 @@ int w2Data1First = 1;
 struct timespec wiegandInterval = { .tv_sec = 0, .tv_nsec =
 WIEGAND_INTERVAL_MILLIS * 1000000 };
 
-void printError(const char *msg) {
-	fprintf(stderr, msg);
-}
-
 int mcp3204Setup() {
 	return (wiringPiSPISetup(MCP_SPI_CHANNEL, MCP_SPI_SPEED) != -1);
 }
@@ -79,7 +75,6 @@ int mcp3204Setup() {
  */
 int ionoPiSetup() {
 	if (wiringPiSetup() != 0) {
-		printError("wiringPi setup error\n");
 		return FALSE;
 	}
 
@@ -108,7 +103,6 @@ int ionoPiSetup() {
 	pullUpDnControl(DI6, PUD_OFF);
 
 	if (!mcp3204Setup()) {
-		printError("mcp setup error\n");
 		return FALSE;
 	}
 
@@ -356,17 +350,11 @@ int ionoPi1WireBusGetDevices(char*** ids) {
 	return i;
 }
 
-/*
- *
- */
-int ionoPi1WireBusReadTemperature(const char* deviceId, int *temp) {
+int read1WireBusDevice(const char* devicePath, int *temp) {
 	FILE *fp;
-	char path[50];
 	char line[50];
 
-	snprintf(path, 50, "%s%s%s", ONEWIRE_DEVICES_PATH, deviceId, "/w1_slave");
-
-	fp = fopen(path, "r");
+	fp = fopen(devicePath, "r");
 	if (fp == NULL) {
 		return FALSE;
 	}
@@ -399,6 +387,23 @@ int ionoPi1WireBusReadTemperature(const char* deviceId, int *temp) {
 	*temp = val;
 
 	return TRUE;
+}
+
+/*
+ *
+ */
+int ionoPi1WireBusReadTemperature(const char* deviceId, const int attempts,
+		int *temp) {
+	char path[50];
+	snprintf(path, 50, "%s%s%s", ONEWIRE_DEVICES_PATH, deviceId, "/w1_slave");
+
+	int i;
+	for (i = 0; i < attempts; i++) {
+		if (read1WireBusDevice(path, temp)) {
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
 
 void w1Data0() {
@@ -500,5 +505,19 @@ int ionoPiWiegandMonitor(int interface, int (*callBack)(int, int, uint64_t)) {
 		nanosleep(&wiegandInterval, NULL);
 	}
 
+	return TRUE;
+}
+
+/*
+ *
+ */
+int ionoPiWiegandStop(int interface) {
+	if (interface == 1) {
+		w1.run = 0;
+	} else if (interface == 2) {
+		w2.run = 0;
+	} else {
+		return FALSE;
+	}
 	return TRUE;
 }

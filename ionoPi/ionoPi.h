@@ -91,10 +91,12 @@ extern int ionoPiDigitalRead(int di);
 extern float ionoPiAnalogRead(int ai);
 extern int ionoPiDigitalInterrupt(int di, int mode, void (*callBack)(int, int));
 extern int ionoPi1WireBusGetDevices(char*** ids);
-extern int ionoPi1WireBusReadTemperature(const char* deviceId, int *temp);
+extern int ionoPi1WireBusReadTemperature(const char* deviceId,
+		const int attempts, int *temp);
 extern int ionoPi1WireMaxDetectRead(const int ttl, const int attempts,
 		int *temp, int *rh);
 extern int ionoPiWiegandMonitor(int interface,
 		int (*callBack)(int, int, uint64_t));
+extern int ionoPiWiegandStop(int);
 
 #endif /* IONOPI_H_INCLUDED */
