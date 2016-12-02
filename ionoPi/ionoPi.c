@@ -74,6 +74,7 @@ int mcp3204Setup() {
  * Must be called once at the start of your program execution.
  */
 int ionoPiSetup() {
+	putenv("WIRINGPI_CODES=1");
 	if (wiringPiSetup() != 0) {
 		return FALSE;
 	}
