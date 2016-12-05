@@ -45,9 +45,9 @@
 #define WIEGAND_INTERVALS_TIMEOUT	10
 #define WIEGAND_MAX_BITS			64
 
-void (*digitalInterruptCB[6])(int, int);
+void (* volatile digitalInterruptCB[6])(int, int);
 
-struct Wiegand {
+volatile struct Wiegand {
 	int64_t data;
 	int bitCount;
 	int done;
@@ -468,7 +468,7 @@ int ionoPiWiegandMonitor(int interface, int (*callBack)(int, int, uint64_t)) {
 	if (callBack == NULL) {
 		return FALSE;
 	}
-	struct Wiegand* w;
+	volatile struct Wiegand* w;
 	if (interface == 1) {
 		w = &w1;
 		if (!w1DataRegistered) {
