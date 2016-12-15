@@ -54,6 +54,14 @@ Build and install:
 Test the installation running the `iono` utility:
 
     $ iono
+
+To use the library in your C code, include its header file:
+
+    #include <ionoPi.h>
+
+and add `-lionoPi` when compiling, e.g.:
+
+    $ gcc -Wall -o foo foo.c -lionoPi
     
 ## IonoPi library documentation
 
