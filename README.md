@@ -11,7 +11,7 @@ It is developed for [Raspberry Pi](https://www.raspberrypi.org/) 2/3 running [Ra
 
 Moreover it includes the `iono` utility program that can be used in scripts or directly from shell to access Iono Pi's functionalities.
 
-The [source code](./ionoPi/ionoPiUtil.c) of the `iono` utility can also be used as a simple axample of how to use the ionoPi library.
+The [source code](./ionoPi/ionoPiUtil.c) of the `iono` utility can also be used as a simple example of how to use the ionoPi library.
 
 ## Raspberry Pi Setup
 
