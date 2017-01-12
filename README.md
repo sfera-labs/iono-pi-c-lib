@@ -98,8 +98,7 @@ Returns `TRUE` upon success, `FALSE` otherwise.
 
 #### void ionoPiPinMode(int pin, int mode)
 
-This function sets the mode (`INPUT` or `OUTPUT`) of a pin. It is normally not needed since all the pins are initialized for their normal usage.     
-It might be useful, for instance, if you want to read the state of a relay output (`O1` ... `O4`); in this case, you'll have to set its mode to `INPUT` (`ionoPiPinMode(O1, INPUT)`), read using `ionoPiDigitalRead(O1)`, and set it back to `OUTPUT`.
+This function sets the mode (`INPUT` or `OUTPUT`) of a pin. You might need it on the TTL lines, the other pins are initialized for their normal usage at setup.
 
 #### void ionoPiDigitalWrite(int output, int value)
 
