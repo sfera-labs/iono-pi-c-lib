@@ -56,12 +56,8 @@ volatile struct Wiegand {
 } w1, w2;
 
 int w1DataRegistered = 0;
-int w1Data0First = 1;
-int w1Data1First = 1;
 
 int w2DataRegistered = 0;
-int w2Data0First = 1;
-int w2Data1First = 1;
 
 struct timespec wiegandInterval = { .tv_sec = 0, .tv_nsec =
 WIEGAND_INTERVAL_MILLIS * 1000000 };
@@ -408,10 +404,6 @@ int ionoPi1WireBusReadTemperature(const char* deviceId, const int attempts,
 }
 
 void w1Data0() {
-	if (w1Data0First) {
-		w1Data0First = 0;
-		return;
-	}
 	if (w1.run && w1.bitCount < WIEGAND_MAX_BITS) {
 		w1.data <<= 1;
 		w1.bitCount++;
@@ -421,10 +413,6 @@ void w1Data0() {
 }
 
 void w1Data1() {
-	if (w1Data1First) {
-		w1Data1First = 0;
-		return;
-	}
 	if (w1.run && w1.bitCount < WIEGAND_MAX_BITS) {
 		w1.data <<= 1;
 		w1.data |= 1;
@@ -435,10 +423,6 @@ void w1Data1() {
 }
 
 void w2Data0() {
-	if (w2Data0First) {
-		w2Data0First = 0;
-		return;
-	}
 	if (w2.run && w2.bitCount < WIEGAND_MAX_BITS) {
 		w2.data <<= 1;
 		w2.bitCount++;
@@ -448,10 +432,6 @@ void w2Data0() {
 }
 
 void w2Data1() {
-	if (w2Data1First) {
-		w2Data1First = 0;
-		return;
-	}
 	if (w2.run && w2.bitCount < WIEGAND_MAX_BITS) {
 		w2.data <<= 1;
 		w2.data |= 1;
