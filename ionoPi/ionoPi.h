@@ -27,7 +27,7 @@
 
 #include <inttypes.h>
 
-#define IONOPI_VERSION "1.0.0"
+#define IONOPI_VERSION "1.2.0"
 
 #define TTL1	7
 #define TTL2	25
@@ -39,14 +39,14 @@
 #define DI4		26
 #define DI5		22
 #define DI6		21
-#define OC1		11
+#define OC1		1
 #define OC2		6
 #define OC3		5
 #define O1		0
 #define O2		2
 #define O3		3
 #define O4		4
-#define LED		1
+#define LED		11
 
 #define AI1		0b01000000 // MCP_CH1
 #define AI2		0b00000000 // MCP_CH0
