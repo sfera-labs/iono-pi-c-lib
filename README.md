@@ -49,6 +49,7 @@ Download ionoPi (which includes wiringPi) using git:
 Build and install:
 
     $ cd iono-pi-c-lib
+    $ chmod +x build
     $ ./build
     
 Test the installation running the `iono` utility:
