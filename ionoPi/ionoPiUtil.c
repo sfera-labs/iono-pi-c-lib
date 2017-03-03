@@ -254,7 +254,7 @@ int main(int argc, char *argv[]) {
 				}
 
 				if (aix >= 0) {
-					printf("%f\n", ionoPiAnalogRead(aix));
+					printf("%f\n", ionoPiVoltageRead(aix));
 					ok = 1;
 				}
 			}

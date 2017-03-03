@@ -109,7 +109,11 @@ Sets the state of a digital output (`O1`, `O2`, `O3`, `O4`, `OC1`, `OC2`, `OC3`,
 
 Returns the state (`HIGH` or `LOW`) of the specified digital input (`DI1`, `DI2`, `DI3`, `DI4`, `DI5`, `DI6`, `TTL1`, `TTL2`, `TTL3`, `TTL4`).
 
-#### float ionoPiAnalogRead(int ai)
+#### int ionoPiAnalogRead(int ai)
+
+Returns the value read from the specified analog input (`AI1`, `AI2`, `AI3`, `AI4`), or `-1` if an error occurs.
+
+#### float ionoPiVoltageRead(int ai)
 
 Returns the voltage value read from the specified analog input (`AI1`, `AI2`, `AI3`, `AI4`), or `-1` if an error occurs.
 

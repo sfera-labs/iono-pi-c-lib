@@ -27,7 +27,7 @@
 
 #include <inttypes.h>
 
-#define IONOPI_VERSION "1.2.0"
+#define IONOPI_VERSION "1.2.1"
 
 #define TTL1	7
 #define TTL2	25
@@ -88,7 +88,8 @@ extern int ionoPiSetup();
 extern void ionoPiPinMode(int pin, int mode);
 extern void ionoPiDigitalWrite(int output, int value);
 extern int ionoPiDigitalRead(int di);
-extern float ionoPiAnalogRead(int ai);
+extern int ionoPiAnalogRead(int ai);
+extern float ionoPiVoltageRead(int ai);
 extern int ionoPiDigitalInterrupt(int di, int mode, void (*callBack)(int, int));
 extern int ionoPi1WireBusGetDevices(char*** ids);
 extern int ionoPi1WireBusReadTemperature(const char* deviceId,

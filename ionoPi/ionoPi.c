@@ -153,17 +153,28 @@ int mcp3204Read(unsigned char channel) {
 /*
  *
  */
-float ionoPiAnalogRead(int ai) {
+int ionoPiAnalogRead(int ai) {
+	int v = mcp3204Read(ai);
+	if (v < 0) {
+		return -1;
+	}
+	return v;
+}
+
+/*
+ *
+ */
+float ionoPiVoltageRead(int ai) {
+	int v = mcp3204Read(ai);
+	if (v < 0) {
+		return -1;
+	}
+
 	float factor;
 	if (ai == AI1 || ai == AI2) {
 		factor = AI1_AI2_FACTOR;
 	} else {
 		factor = AI3_AI4_FACTOR;
-	}
-
-	int v = mcp3204Read(ai);
-	if (v < 0) {
-		return -1;
 	}
 
 	return factor * v;
