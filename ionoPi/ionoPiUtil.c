@@ -234,7 +234,7 @@ int main(int argc, char *argv[]) {
 						}
 					}
 				}
-			} else if (argc == 2 && cmd[0] == 'a' && cmd[1] == 'i') {
+			} else if (cmd[0] == 'a' && cmd[1] == 'i') {
 				int aix = -1;
 				switch (cmd[2]) {
 				case '1':
@@ -254,8 +254,13 @@ int main(int argc, char *argv[]) {
 				}
 
 				if (aix >= 0) {
-					printf("%f\n", ionoPiVoltageRead(aix));
-					ok = 1;
+					if (argc == 2) {
+						printf("%f\n", ionoPiVoltageRead(aix));
+						ok = 1;
+					} else if (argc == 3 && strcmp(argv[2], "-r") == 0) {
+						printf("%d\n", ionoPiAnalogRead(aix));
+						ok = 1;
+					}
 				}
 			}
 		}
@@ -275,6 +280,8 @@ int main(int argc, char *argv[]) {
 						"   di<n>           Print the state (\"high\" or \"low\") of digital input di<n> (<n>=1..6)\n"
 						"   di<n> -f        Print the state of digital input di<n> now and on every change\n"
 						"   ai<n>           Print the voltage value (V) read from analog input ai<n> (<n>=1..4)\n"
+						"   ai<n> -r        Print the raw value read from the A/D converter's channel corresponding\n"
+						"                   to analog input ai<n> (<n>=1..4)\n"
 						"   1wire bus       Print the list of device IDs found on the 1-Wire bus\n"
 						"   1wire bus <id>  Print the temperature value (°C) read from 1-Wire device <id>\n"
 						"   1wire ttl<n>    Print temperature (°C) and humidity (%%) values read from the\n"
