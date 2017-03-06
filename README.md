@@ -19,7 +19,7 @@ Enable SPI:
 
     $ sudo raspi-config
     
-Select: Advanced Options -> SPI -> enable
+Select: Interfacing Options -> SPI -> enable
 
 If using 1-Wire bus devices (e.g. DS18B20 temperature sensors) on the TTL1 pin, enable that too:
 
