@@ -127,7 +127,7 @@ The callback function must have the following signature:
 
 When called, the parameters will be set respectively to the digital pin on which the interrupt triggered and its current state.
 
-#### ionoPiSetDigitalDebounce(int di, int millis)
+#### void ionoPiSetDigitalDebounce(int di, int millis)
 
 Sets a debouce time (in milliseconds) on the specified digital input.
 

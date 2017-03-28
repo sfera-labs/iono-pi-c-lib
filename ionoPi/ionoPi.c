@@ -257,6 +257,9 @@ volatile struct DigitalInputConfig* getDigitalInputConfig(int di) {
  */
 void ionoPiSetDigitalDebounce(int di, int millis) {
 	volatile struct DigitalInputConfig* diConf = getDigitalInputConfig(di);
+	if (diConf == NULL) {
+		return;
+	}
 	diConf->debounceTime.tv_sec = millis / 1000;
 	diConf->debounceTime.tv_nsec = (millis % 1000) * 1000000L;
 	pinMode(di, INPUT);
