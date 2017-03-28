@@ -127,6 +127,13 @@ The callback function must have the following signature:
 
 When called, the parameters will be set respectively to the digital pin on which the interrupt triggered and its current state.
 
+#### ionoPiSetDigitalDebounce(int di, int millis)
+
+Sets a debouce time (in milliseconds) on the specified digital input.
+
+If set to a value greater than 0, state variations on the specified input will have effect only if stable for a period longer than the specified debounce time.     
+This will affect the value returned by `ionoPiDigitalRead()` called on the same input and the triggering of interrupts if a callback function has been registered with `ionoPiDigitalInterrupt()`. 
+
 #### int ionoPi1WireBusGetDevices(char*** ids)
 
 This function retrieves the IDs of the devices connected to the 1-Wire bus. It will populate the array of char strings `ids` passed by address, allocating the required memory.

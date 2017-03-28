@@ -32,6 +32,8 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 #include <maxdetect.h>
+#include <pthread.h>
+#include <sys/time.h>
 
 #define MCP_SPI_CHANNEL 			0
 #define MCP_SPI_SPEED				50000
@@ -45,7 +47,19 @@
 #define WIEGAND_INTERVALS_TIMEOUT	10
 #define WIEGAND_MAX_BITS			64
 
-void (* volatile digitalInterruptCB[6])(int, int);
+struct DigitalInputConfig {
+	int digitalInput;
+	int currValue;
+	int debouncedValue;
+	void (*isrCallBack)(void);
+	void (*callBack)(int, int);
+	int callBackMode;
+	struct timespec debounceTime;
+	pthread_t debounceThread;
+	pthread_mutex_t mutex;
+};
+
+volatile struct DigitalInputConfig diConfs[6];
 
 volatile struct Wiegand {
 	int64_t data;
@@ -56,7 +70,6 @@ volatile struct Wiegand {
 } w1, w2;
 
 int w1DataRegistered = 0;
-
 int w2DataRegistered = 0;
 
 struct timespec wiegandInterval = { .tv_sec = 0, .tv_nsec =
@@ -123,10 +136,177 @@ void ionoPiDigitalWrite(int output, int value) {
 /*
  *
  */
-int ionoPiDigitalRead(int di) {
-	return digitalRead(di);
+void *waitAndCallDigitalInterruptCB(void* arg) {
+	volatile struct DigitalInputConfig* diConf =
+			(volatile struct DigitalInputConfig*) arg;
+	int currValue = diConf->currValue;
+	nanosleep((struct timespec *) &(diConf->debounceTime), NULL);
+	if (diConf->debouncedValue != currValue) {
+		diConf->debouncedValue = currValue;
+		if (diConf->callBack != NULL) {
+			if ((diConf->callBackMode == INT_EDGE_RISING && currValue == HIGH)
+					|| (diConf->callBackMode == INT_EDGE_FALLING
+							&& currValue == LOW)
+					|| diConf->callBackMode == INT_EDGE_BOTH) {
+				diConf->callBack(diConf->digitalInput, diConf->debouncedValue);
+			}
+		}
+	}
+	return NULL;
 }
 
+/*
+ *
+ */
+void digitalInterruptCB(int idx) {
+	volatile struct DigitalInputConfig* diConf = &diConfs[idx];
+	pthread_mutex_lock((pthread_mutex_t *) &(diConf->mutex));
+	diConf->currValue = digitalRead(diConf->digitalInput);
+	if (diConf->debounceTime.tv_sec == 0 && diConf->debounceTime.tv_nsec == 0) {
+		if (diConf->callBack != NULL) {
+			if (diConf->debouncedValue != diConf->currValue) {
+				diConf->debouncedValue = diConf->currValue;
+				if (diConf->callBackMode == INT_EDGE_RISING) {
+					diConf->callBack(diConf->digitalInput, HIGH);
+				} else if (diConf->callBackMode == INT_EDGE_FALLING) {
+					diConf->callBack(diConf->digitalInput, LOW);
+				} else {
+					diConf->callBack(diConf->digitalInput, diConf->currValue);
+				}
+			}
+		}
+	} else {
+		pthread_cancel(diConf->debounceThread);
+		int err = pthread_create((pthread_t *) &(diConf->debounceThread), NULL,
+				waitAndCallDigitalInterruptCB, (void *) diConf);
+		if (err != 0) {
+			fprintf(stderr, "error creating new thread [%d]\n", err);
+		}
+		pthread_detach(diConf->debounceThread);
+	}
+	pthread_mutex_unlock((pthread_mutex_t *) &(diConf->mutex));
+}
+
+void di1InterruptCB() {
+	digitalInterruptCB(0);
+}
+
+void di2InterruptCB() {
+	digitalInterruptCB(1);
+}
+
+void di3InterruptCB() {
+	digitalInterruptCB(2);
+}
+
+void di4InterruptCB() {
+	digitalInterruptCB(3);
+}
+
+void di5InterruptCB() {
+	digitalInterruptCB(4);
+}
+
+void di6InterruptCB() {
+	digitalInterruptCB(5);
+}
+
+/*
+ *
+ */
+volatile struct DigitalInputConfig* getDigitalInputConfig(int di) {
+	int idx;
+	void (*isrCallBack)(void);
+	switch (di) {
+	case DI1:
+		idx = 0;
+		isrCallBack = di1InterruptCB;
+		break;
+	case DI2:
+		idx = 1;
+		isrCallBack = di2InterruptCB;
+		break;
+	case DI3:
+		idx = 2;
+		isrCallBack = di3InterruptCB;
+		break;
+	case DI4:
+		idx = 3;
+		isrCallBack = di4InterruptCB;
+		break;
+	case DI5:
+		idx = 4;
+		isrCallBack = di5InterruptCB;
+		break;
+	case DI6:
+		idx = 5;
+		isrCallBack = di6InterruptCB;
+		break;
+	default:
+		return NULL;
+	}
+
+	diConfs[idx].digitalInput = di;
+	diConfs[idx].isrCallBack = isrCallBack;
+
+	return &diConfs[idx];
+}
+
+/*
+ *
+ */
+void ionoPiSetDigitalDebounce(int di, int millis) {
+	volatile struct DigitalInputConfig* diConf = getDigitalInputConfig(di);
+	diConf->debounceTime.tv_sec = millis / 1000;
+	diConf->debounceTime.tv_nsec = (millis % 1000) * 1000000L;
+	pinMode(di, INPUT);
+	if (millis != 0) {
+		wiringPiISR(di, INT_EDGE_BOTH, diConf->isrCallBack);
+		diConf->debouncedValue = digitalRead(di);
+	}
+}
+
+/*
+ *
+ */
+int ionoPiDigitalRead(int di) {
+	volatile struct DigitalInputConfig* diConf = getDigitalInputConfig(di);
+	if (diConf == NULL) {
+		// it's not a DIx
+		return digitalRead(di);
+	}
+	if (diConf->debounceTime.tv_sec == 0 && diConf->debounceTime.tv_nsec == 0) {
+		return digitalRead(di);
+	} else {
+		return diConf->debouncedValue;
+	}
+}
+
+/*
+ *
+ */
+int ionoPiDigitalInterrupt(int di, int mode, void (*callBack)(int, int)) {
+	volatile struct DigitalInputConfig* diConf = getDigitalInputConfig(di);
+	if (diConf == NULL) {
+		return FALSE;
+	}
+	diConf->callBack = callBack;
+	diConf->callBackMode = mode;
+	if (callBack != NULL) {
+		if (diConf->debounceTime.tv_sec == 0
+				&& diConf->debounceTime.tv_nsec == 0) {
+			wiringPiISR(di, mode, diConf->isrCallBack);
+		} else {
+			wiringPiISR(di, INT_EDGE_BOTH, diConf->isrCallBack);
+		}
+	}
+
+	return TRUE;
+}
+
+/*
+ *
+ */
 int mcp3204Read(unsigned char channel) {
 	/*
 	 * See http://ww1.microchip.com/downloads/en/DeviceDoc/21298c.pdf Page 18
@@ -178,80 +358,6 @@ float ionoPiVoltageRead(int ai) {
 	}
 
 	return factor * v;
-}
-
-void callDigitalInterruptCB(int idx, int di) {
-	if (digitalInterruptCB[idx] != NULL) {
-		digitalInterruptCB[idx](di, digitalRead(di));
-	}
-}
-
-void di1InterruptCB() {
-	callDigitalInterruptCB(0, DI1);
-}
-
-void di2InterruptCB() {
-	callDigitalInterruptCB(1, DI2);
-}
-
-void di3InterruptCB() {
-	callDigitalInterruptCB(2, DI3);
-}
-
-void di4InterruptCB() {
-	callDigitalInterruptCB(3, DI4);
-}
-
-void di5InterruptCB() {
-	callDigitalInterruptCB(4, DI5);
-}
-
-void di6InterruptCB() {
-	callDigitalInterruptCB(5, DI6);
-}
-
-/*
- *
- */
-int ionoPiDigitalInterrupt(int di, int mode, void (*callBack)(int, int)) {
-	int idx;
-	void (*isrFunc)(void);
-	switch (di) {
-	case DI1:
-		idx = 0;
-		isrFunc = di1InterruptCB;
-		break;
-	case DI2:
-		idx = 1;
-		isrFunc = di2InterruptCB;
-		break;
-	case DI3:
-		idx = 2;
-		isrFunc = di3InterruptCB;
-		break;
-	case DI4:
-		idx = 3;
-		isrFunc = di4InterruptCB;
-		break;
-	case DI5:
-		idx = 4;
-		isrFunc = di5InterruptCB;
-		break;
-	case DI6:
-		idx = 5;
-		isrFunc = di6InterruptCB;
-		break;
-	default:
-		return FALSE;
-	}
-
-	pinMode(di, INPUT);
-	if (callBack != NULL) {
-		wiringPiISR(di, mode, isrFunc);
-	}
-	digitalInterruptCB[idx] = callBack;
-
-	return TRUE;
 }
 
 int readRHT03Fixed(const int pin, int *temp, int *rh) {

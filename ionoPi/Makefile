@@ -44,14 +44,14 @@ $(UTILITY) : $(UTILITY_OBJ) $(LIB)
 # library recompiled when object files modified
 $(LIB) : $(LIB_OBJ)
 	@ echo "Linking shared lib ..."
-	@ $(CC) -shared -Wl,-soname,$@ -o $@ -lwiringPi -lwiringPiDev $(LIB_OBJ)
+	@ $(CC) -shared -Wl,-soname,$@ -o $@ -lwiringPi -lwiringPiDev -lpthread $(LIB_OBJ)
 
 # object files recompiled when source files modified (.c and .h)
 %.o : %.c $(HEADERS)
 	@ echo "Compiling $< ..."
 	@ $(CC) -c -o $@ $< $(CFLAGS)
 
-# install utility al lib
+# install utility and lib
 .PHONY:	install
 install : $(UTILITY) install-lib
 	@ echo "Installing $(UTILITY) utility ..."

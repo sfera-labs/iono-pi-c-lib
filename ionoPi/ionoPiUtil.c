@@ -270,7 +270,7 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "usage: %s <command>\n\n", argv[0]);
 		fprintf(stderr,
 				"Commands:\n"
-						"   -v              Print Iono Pi Utility version number\n"
+						"   -v              Print the version number of the ionoPi library\n"
 						"   led on          Turn on the green LED\n"
 						"   led off         Turn off the green LED\n"
 						"   o<n> open       Open relay output o<n> (<n>=1..4)\n"
