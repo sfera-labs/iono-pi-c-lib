@@ -1,7 +1,7 @@
 /*
  * ionoPi
  *
- *     Copyright (C) 2016 Sfera Labs S.r.l.
+ *     Copyright (C) 2016-2017 Sfera Labs S.r.l.
  *
  *     For information, see the Iono Pi web site:
  *     http://www.sferalabs.cc/iono-pi
@@ -27,7 +27,7 @@
 
 #include <inttypes.h>
 
-#define IONOPI_VERSION "1.3.0"
+#define IONOPI_VERSION "1.4.0"
 
 #define TTL1	7
 #define TTL2	25

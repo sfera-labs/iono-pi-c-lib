@@ -1,7 +1,7 @@
 /*
  * ionoPi
  *
- *     Copyright (C) 2016 Sfera Labs S.r.l.
+ *     Copyright (C) 2016-2017 Sfera Labs S.r.l.
  *
  *     For information, see the Iono Pi web site:
  *     http://www.sferalabs.cc/iono-pi
@@ -59,7 +59,7 @@ struct DigitalInputConfig {
 	pthread_mutex_t mutex;
 };
 
-volatile struct DigitalInputConfig diConfs[6];
+volatile struct DigitalInputConfig diConfs[10];
 
 volatile struct Wiegand {
 	int64_t data;
@@ -160,22 +160,20 @@ void *waitAndCallDigitalInterruptCB(void* arg) {
  */
 void digitalInterruptCB(int idx) {
 	volatile struct DigitalInputConfig* diConf = &diConfs[idx];
-	pthread_mutex_lock((pthread_mutex_t *) &(diConf->mutex));
-	diConf->currValue = digitalRead(diConf->digitalInput);
 	if (diConf->debounceTime.tv_sec == 0 && diConf->debounceTime.tv_nsec == 0) {
 		if (diConf->callBack != NULL) {
-			if (diConf->debouncedValue != diConf->currValue) {
-				diConf->debouncedValue = diConf->currValue;
-				if (diConf->callBackMode == INT_EDGE_RISING) {
-					diConf->callBack(diConf->digitalInput, HIGH);
-				} else if (diConf->callBackMode == INT_EDGE_FALLING) {
-					diConf->callBack(diConf->digitalInput, LOW);
-				} else {
-					diConf->callBack(diConf->digitalInput, diConf->currValue);
-				}
+			if (diConf->callBackMode == INT_EDGE_RISING) {
+				diConf->callBack(diConf->digitalInput, HIGH);
+			} else if (diConf->callBackMode == INT_EDGE_FALLING) {
+				diConf->callBack(diConf->digitalInput, LOW);
+			} else {
+				diConf->callBack(diConf->digitalInput,
+						digitalRead(diConf->digitalInput));
 			}
 		}
 	} else {
+		pthread_mutex_lock((pthread_mutex_t *) &(diConf->mutex));
+		diConf->currValue = digitalRead(diConf->digitalInput);
 		pthread_cancel(diConf->debounceThread);
 		int err = pthread_create((pthread_t *) &(diConf->debounceThread), NULL,
 				waitAndCallDigitalInterruptCB, (void *) diConf);
@@ -183,8 +181,8 @@ void digitalInterruptCB(int idx) {
 			fprintf(stderr, "error creating new thread [%d]\n", err);
 		}
 		pthread_detach(diConf->debounceThread);
+		pthread_mutex_unlock((pthread_mutex_t *) &(diConf->mutex));
 	}
-	pthread_mutex_unlock((pthread_mutex_t *) &(diConf->mutex));
 }
 
 void di1InterruptCB() {
@@ -209,6 +207,22 @@ void di5InterruptCB() {
 
 void di6InterruptCB() {
 	digitalInterruptCB(5);
+}
+
+void ttl1InterruptCB() {
+	digitalInterruptCB(6);
+}
+
+void ttl2InterruptCB() {
+	digitalInterruptCB(7);
+}
+
+void ttl3InterruptCB() {
+	digitalInterruptCB(8);
+}
+
+void ttl4InterruptCB() {
+	digitalInterruptCB(9);
 }
 
 /*
@@ -241,6 +255,22 @@ volatile struct DigitalInputConfig* getDigitalInputConfig(int di) {
 	case DI6:
 		idx = 5;
 		isrCallBack = di6InterruptCB;
+		break;
+	case TTL1:
+		idx = 6;
+		isrCallBack = ttl1InterruptCB;
+		break;
+	case TTL2:
+		idx = 7;
+		isrCallBack = ttl2InterruptCB;
+		break;
+	case TTL3:
+		idx = 8;
+		isrCallBack = ttl3InterruptCB;
+		break;
+	case TTL4:
+		idx = 9;
+		isrCallBack = ttl4InterruptCB;
 		break;
 	default:
 		return NULL;
@@ -275,7 +305,6 @@ void ionoPiSetDigitalDebounce(int di, int millis) {
 int ionoPiDigitalRead(int di) {
 	volatile struct DigitalInputConfig* diConf = getDigitalInputConfig(di);
 	if (diConf == NULL) {
-		// it's not a DIx
 		return digitalRead(di);
 	}
 	if (diConf->debounceTime.tv_sec == 0 && diConf->debounceTime.tv_nsec == 0) {

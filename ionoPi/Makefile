@@ -1,7 +1,7 @@
 #
 # ionoPi
 #
-#     Copyright (C) 2016 Sfera Labs S.r.l.
+#     Copyright (C) 2016-2017 Sfera Labs S.r.l.
 #
 #     For information, see the Iono Pi web site:
 #     http://www.sferalabs.cc/iono-pi
