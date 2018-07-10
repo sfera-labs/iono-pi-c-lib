@@ -55,6 +55,29 @@ Build and install:
 Test the installation running the `iono` utility:
 
     $ iono
+    usage: iono <command>
+
+    Commands:
+       -v              Print the version number of the ionoPi library
+       led on          Turn on the green LED
+       led off         Turn off the green LED
+       o<n> open       Open relay output o<n> (<n>=1..4)
+       o<n> close      Close relay output o<n> (<n>=1..4)
+       oc<n> open      Open open collector oc<n> (<n>=1..3)
+       oc<n> close     Close open collector oc<n> (<n>=1..3)
+       di<n>           Print the state ("high" or "low") of digital input di<n> (<n>=1..6)
+       di<n> -f        Print the state of digital input di<n> now and on every change
+       ai<n>           Print the voltage value (V) read from analog input ai<n> (<n>=1..4)
+       ai<n> -r        Print the raw value read from the A/D converter's channel corresponding
+                       to analog input ai<n> (<n>=1..4)
+       1wire bus       Print the list of device IDs found on the 1-Wire bus
+       1wire bus <id>  Print the temperature value (°C) read from 1-Wire device <id>
+       1wire ttl<n>    Print temperature (°C) and humidity (%) values read from the
+                       MaxDetect 1-Wire sensor on TTL<n> (<n>=1..4)
+       wiegand <n>     Wait for data to be available on Wiegand interface <n> (<n>=1|2)
+                       and print number of bits and value read
+       wiegand <n> -f  Continuously print number of bits and value read from Wiegand
+                       interface <n> whenever data is available
     
 ## IonoPi library documentation
 
