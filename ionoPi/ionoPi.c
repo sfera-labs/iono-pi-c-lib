@@ -1,7 +1,7 @@
 /*
  * ionoPi
  *
- *     Copyright (C) 2016-2017 Sfera Labs S.r.l.
+ *     Copyright (C) 2016-2019 Sfera Labs S.r.l.
  *
  *     For information, see the Iono Pi web site:
  *     http://www.sferalabs.cc/iono-pi
@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-#include <time.h>
 #include <dirent.h>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
@@ -43,8 +42,6 @@
 
 #define ONEWIRE_DEVICES_PATH "/sys/bus/w1/devices/"
 
-#define WIEGAND_INTERVAL_MILLIS		5
-#define WIEGAND_INTERVALS_TIMEOUT	10
 #define WIEGAND_MAX_BITS			64
 
 struct DigitalInputConfig {
@@ -64,17 +61,20 @@ volatile struct DigitalInputConfig diConfs[10];
 volatile struct Wiegand {
 	int64_t data;
 	int bitCount;
-	int done;
-	unsigned int intervalsCounter;
+	struct timespec lastBitTs;
 	int run;
 } w1, w2;
 
 int w1DataRegistered = 0;
 int w2DataRegistered = 0;
 
-struct timespec wiegandInterval = { .tv_sec = 0, .tv_nsec =
-WIEGAND_INTERVAL_MILLIS * 1000000 };
+struct timespec wiegandPulseWidthMax;
+unsigned long int wiegandPulseIntervalMin_usec;
+unsigned long int wiegandPulseIntervalMax_usec;
 
+/*
+ *
+ */
 int mcp3204Setup() {
 	return (wiringPiSPISetup(MCP_SPI_CHANNEL, MCP_SPI_SPEED) != -1);
 }
@@ -115,6 +115,8 @@ int ionoPiSetup() {
 	if (!mcp3204Setup()) {
 		return FALSE;
 	}
+
+	ionoPiSetWiegandPulse(50, 1200, 2700);
 
 	return TRUE;
 }
@@ -552,42 +554,90 @@ int ionoPi1WireBusReadTemperature(const char* deviceId, const int attempts,
 	return FALSE;
 }
 
-void w1Data0() {
-	if (w1.run && w1.bitCount < WIEGAND_MAX_BITS) {
-		w1.data <<= 1;
-		w1.bitCount++;
-		w1.intervalsCounter = WIEGAND_INTERVALS_TIMEOUT;
-		w1.done = 0;
+/*
+ *
+ */
+unsigned long int to_usec(time_t t_sec, long int t_nsec) {
+	return (t_sec * 1000000UL) + (t_nsec / 1000UL);
+}
+
+/*
+ *
+ */
+unsigned long int diff_usec(struct timespec* t1, struct timespec* t2) {
+	time_t diff_sec = t2->tv_sec - t1->tv_sec;
+	long int diff_nsec = t2->tv_nsec - t1->tv_nsec;
+	if (diff_nsec < 0) {
+		diff_sec -= 1;
+		diff_nsec += 1000000000L;
 	}
+	return to_usec(diff_sec, diff_nsec);
+}
+
+/*
+ *
+ */
+void wData(volatile struct Wiegand* w, int ttl, int bitVal) {
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+
+	if (!w->run || w->bitCount >= WIEGAND_MAX_BITS) {
+		return;
+	}
+
+	nanosleep(&wiegandPulseWidthMax, NULL);
+	if (digitalRead(ttl) == LOW) {
+		// pulse too long
+		w->bitCount = 0;
+		w->data = 0;
+		return;
+	}
+
+	if (w->bitCount != 0) {
+		unsigned long int diff = diff_usec((struct timespec *) &(w->lastBitTs),
+				&now);
+		if (diff < wiegandPulseIntervalMin_usec
+				|| diff > wiegandPulseIntervalMax_usec) {
+			// pulse too early or too late
+			w->bitCount = 0;
+			w->data = 0;
+			return;
+		}
+	}
+
+	w->lastBitTs.tv_sec = now.tv_sec;
+	w->lastBitTs.tv_nsec = now.tv_nsec;
+
+	w->data <<= 1;
+	w->data |= bitVal;
+	w->bitCount++;
+}
+
+void w1Data0() {
+	wData(&w1, TTL1, 0);
 }
 
 void w1Data1() {
-	if (w1.run && w1.bitCount < WIEGAND_MAX_BITS) {
-		w1.data <<= 1;
-		w1.data |= 1;
-		w1.bitCount++;
-		w1.intervalsCounter = WIEGAND_INTERVALS_TIMEOUT;
-		w1.done = 0;
-	}
+	wData(&w1, TTL2, 1);
 }
 
 void w2Data0() {
-	if (w2.run && w2.bitCount < WIEGAND_MAX_BITS) {
-		w2.data <<= 1;
-		w2.bitCount++;
-		w2.intervalsCounter = WIEGAND_INTERVALS_TIMEOUT;
-		w2.done = 0;
-	}
+	wData(&w2, TTL3, 0);
 }
 
 void w2Data1() {
-	if (w2.run && w2.bitCount < WIEGAND_MAX_BITS) {
-		w2.data <<= 1;
-		w2.data |= 1;
-		w2.bitCount++;
-		w2.intervalsCounter = WIEGAND_INTERVALS_TIMEOUT;
-		w2.done = 0;
-	}
+	wData(&w2, TTL4, 1);
+}
+
+/*
+ *
+ */
+void ionoPiSetWiegandPulse(unsigned int maxWidthMicros,
+		unsigned int minIntervalMicros, unsigned int maxIntervalMicros) {
+	wiegandPulseWidthMax.tv_sec = maxWidthMicros / 1000000L;
+	wiegandPulseWidthMax.tv_nsec = (maxWidthMicros % 1000000L) * 1000L;
+	wiegandPulseIntervalMin_usec = minIntervalMicros;
+	wiegandPulseIntervalMax_usec = maxIntervalMicros;
 }
 
 /*
@@ -616,26 +666,34 @@ int ionoPiWiegandMonitor(int interface, int (*callBack)(int, int, uint64_t)) {
 		return FALSE;
 	}
 
+	struct timespec now;
+	unsigned long int diff;
+	unsigned long int timeout_usec = wiegandPulseIntervalMax_usec * 3;
+	if (timeout_usec < 200000) {
+		timeout_usec = 200000;
+	}
+	unsigned int delay_ms = timeout_usec / 4000;
+
 	w->data = 0;
 	w->bitCount = 0;
-	w->done = 1;
-
 	w->run = 1;
+
 	while (w->run) {
-		if (!w->done) {
-			if (--w->intervalsCounter == 0) {
-				w->done = 1;
-				if (w->bitCount > 0) {
+		if (w->bitCount > 0) {
+			clock_gettime(CLOCK_MONOTONIC, &now);
+			diff = diff_usec((struct timespec *) &w->lastBitTs, &now);
+			if (diff >= timeout_usec) {
+				if (w->bitCount >= 4) {
 					if (!callBack(interface, w->bitCount, w->data)) {
 						w->run = 0;
 						return TRUE;
 					}
-					w->data = 0;
-					w->bitCount = 0;
 				}
+				w->data = 0;
+				w->bitCount = 0;
 			}
 		}
-		nanosleep(&wiegandInterval, NULL);
+		delay(delay_ms);
 	}
 
 	return TRUE;

@@ -1,7 +1,7 @@
 /*
  * ionoPi
  *
- *     Copyright (C) 2016-2017 Sfera Labs S.r.l.
+ *     Copyright (C) 2016-2019 Sfera Labs S.r.l.
  *
  *     For information, see the Iono Pi web site:
  *     http://www.sferalabs.cc/iono-pi
@@ -27,7 +27,7 @@
 
 #include <inttypes.h>
 
-#define IONOPI_VERSION "1.4.0"
+#define IONOPI_VERSION "1.5.0"
 
 #define TTL1	7
 #define TTL2	25
@@ -97,8 +97,10 @@ extern int ionoPi1WireBusReadTemperature(const char* deviceId,
 		const int attempts, int *temp);
 extern int ionoPi1WireMaxDetectRead(const int ttl, const int attempts,
 		int *temp, int *rh);
+extern void ionoPiSetWiegandPulse(unsigned int maxWidthMicros,
+		unsigned int minIntervalMicros, unsigned int maxIntervalMicros);
 extern int ionoPiWiegandMonitor(int interface,
 		int (*callBack)(int, int, uint64_t));
-extern int ionoPiWiegandStop(int);
+extern int ionoPiWiegandStop(int interface);
 
 #endif /* IONOPI_H_INCLUDED */
