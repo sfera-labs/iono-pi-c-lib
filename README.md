@@ -33,13 +33,9 @@ Reboot:
     
 ## Installation
 
-Make sure your Pi is up to date with the latest versions of Raspbian:
-
-    $ sudo apt-get update
-    $ sudo apt-get upgrade
-
 If you don't have git installed:
 
+    $ sudo apt-get update
     $ sudo apt-get install git-core
     
 Download ionoPi (which includes wiringPi) using git:
