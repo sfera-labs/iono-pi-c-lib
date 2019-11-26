@@ -7,13 +7,18 @@ This library provides a set of utility functions to use all the functionalities 
 * Analog inputs reading
 * 1-Wire and Wiegand support
 
-It is developed for [Raspberry Pi](https://www.raspberrypi.org/) 2/3 running [Raspbian](https://www.raspberrypi.org/downloads/raspbian/) and based on the [WiringPi GPIO access library](http://wiringpi.com/).
+It is developed for [Raspberry Pi](https://www.raspberrypi.org/) 2/3/4 running [Raspbian](https://www.raspberrypi.org/downloads/raspbian/) and based on the [WiringPi GPIO access library](http://wiringpi.com/).
 
 Moreover it includes the `iono` utility program that can be used in scripts or directly from shell to access Iono Pi's functionalities.
 
 The [source code](./ionoPi/ionoPiUtil.c) of the `iono` utility can also be used as a simple example of how to use the ionoPi library.
 
 ## Raspberry Pi Setup
+
+Configure the GPIOs corresponding to Iono Pi's digital inputs as inputs without pull up/down.    
+Edit the file `/boot/config.txt` adding the line:
+
+    gpio=16,19,13,12,6,5=ip,pn
 
 Enable SPI:
 
@@ -40,7 +45,7 @@ If you don't have git installed:
     
 Download ionoPi (which includes wiringPi) using git:
 
-    $ git clone --recursive https://github.com/sfera-labs/iono-pi-c-lib.git
+    $ git clone https://github.com/sfera-labs/iono-pi-c-lib.git
     
 Build and install:
 

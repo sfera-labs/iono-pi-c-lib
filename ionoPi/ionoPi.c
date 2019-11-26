@@ -100,17 +100,11 @@ int ionoPiSetup() {
 	pinMode(OC3, OUTPUT);
 
 	pinMode(DI1, INPUT);
-	pullUpDnControl(DI1, PUD_OFF);
 	pinMode(DI2, INPUT);
-	pullUpDnControl(DI2, PUD_OFF);
 	pinMode(DI3, INPUT);
-	pullUpDnControl(DI3, PUD_OFF);
 	pinMode(DI4, INPUT);
-	pullUpDnControl(DI4, PUD_OFF);
 	pinMode(DI5, INPUT);
-	pullUpDnControl(DI5, PUD_OFF);
 	pinMode(DI6, INPUT);
-	pullUpDnControl(DI6, PUD_OFF);
 
 	if (!mcp3204Setup()) {
 		return FALSE;
