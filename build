@@ -3,7 +3,7 @@
 #
 # ionoPi
 #
-#     Copyright (C) 2016 Sfera Labs S.r.l.
+#     Copyright (C) 2016-2019 Sfera Labs S.r.l.
 #
 #     For information, see the Iono Pi web site:
 #     http://www.sferalabs.cc/iono-pi
@@ -24,11 +24,8 @@
 #
 
 if [ x$1 = "xclean" ]; then
-	echo "=== wiringPi ==="
-	cd wiringPi
-	./build clean
 	echo "=== ionoPi ==="
-	cd ../ionoPi
+	cd ionoPi
 	make clean
 	echo "Done."
 	exit
@@ -36,11 +33,10 @@ fi
 
 if [ x$1 = "xuninstall" ]; then
 	echo "=== wiringPi ==="
-	cd wiringPi
-	./build uninstall
+	apt-get purge wiringpi
 	echo "=== ionoPi ==="
-	cd ../ionoPi
-	sudo make uninstall
+	cd ionoPi
+	make uninstall
 	echo "Done."
 	exit
 fi
@@ -52,12 +48,13 @@ fi
 
 echo "=== wiringPi ==="
 cd wiringPi
-./build
+dpkg -i wiringpi-2.52.deb
+cd ..
 
 echo "=== ionoPi ==="
-cd ../ionoPi
-sudo make uninstall
-sudo make install
+cd ionoPi
+make uninstall
+make install
 
 echo
 echo Done.
