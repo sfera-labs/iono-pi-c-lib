@@ -1,3 +1,0 @@
-[submodule "wiringPi"]
-	path = wiringPi
-	url = https://github.com/sfera-labs/wiringPi
