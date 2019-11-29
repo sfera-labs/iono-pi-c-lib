@@ -79,6 +79,29 @@ int mcp3204Setup() {
 	return (wiringPiSPISetup(MCP_SPI_CHANNEL, MCP_SPI_SPEED) != -1);
 }
 
+int isRPiBefore4() {
+	FILE *fp;
+	char model[20];
+
+	fp = fopen("/proc/device-tree/model", "r");
+	if (fp == NULL) {
+		return TRUE;
+	}
+
+	fgets(model, 20, (FILE*) fp);
+	fclose(fp);
+
+	if (model[12] != ' ' || model[14] != ' ') {
+		return FALSE;
+	}
+
+	if (model[13] == '2' || model[13] == '3') {
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 /*
  * Must be called once at the start of your program execution.
  */
@@ -105,6 +128,15 @@ int ionoPiSetup() {
 	pinMode(DI4, INPUT);
 	pinMode(DI5, INPUT);
 	pinMode(DI6, INPUT);
+
+	if (isRPiBefore4()) {
+		pullUpDnControl(DI1, PUD_OFF);
+		pullUpDnControl(DI2, PUD_OFF);
+		pullUpDnControl(DI3, PUD_OFF);
+		pullUpDnControl(DI4, PUD_OFF);
+		pullUpDnControl(DI5, PUD_OFF);
+		pullUpDnControl(DI6, PUD_OFF);
+	}
 
 	if (!mcp3204Setup()) {
 		return FALSE;
