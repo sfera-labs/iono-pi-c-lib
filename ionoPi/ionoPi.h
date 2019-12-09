@@ -27,7 +27,7 @@
 
 #include <inttypes.h>
 
-#define IONOPI_VERSION "1.6.1"
+#define IONOPI_VERSION "1.6.2"
 
 #define TTL1	7
 #define TTL2	25

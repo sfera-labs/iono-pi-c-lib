@@ -142,7 +142,7 @@ int ionoPiSetup() {
 		return FALSE;
 	}
 
-	ionoPiSetWiegandPulse(50, 1200, 2700);
+	ionoPiSetWiegandPulse(150, 1200, 2700);
 
 	return TRUE;
 }
