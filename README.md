@@ -45,7 +45,7 @@ If you don't have git installed:
     
 Download ionoPi (which includes wiringPi) using git:
 
-    $ git clone https://github.com/sfera-labs/iono-pi-c-lib.git
+    $ git clone --depth 1 https://github.com/sfera-labs/iono-pi-c-lib.git
     
 Build and install:
 
