@@ -13,6 +13,8 @@ Moreover it includes the `iono` utility program that can be used in scripts or d
 
 The [source code](./ionoPi/ionoPiUtil.c) of the `iono` utility can also be used as a simple example of how to use the ionoPi library.
 
+**NOTE** If you have installed the [Iono Pi kernel module](https://github.com/sfera-labs/iono-pi-kernel-module), make sure to disable it before using the library or the utility as it will get hold of the SPI bus and GPIOs. That is, remove `dtoverlay=ionopi` form `/boot/config.txt` and reboot.
+
 ## Raspberry Pi Setup
 
 Configure the GPIOs corresponding to Iono Pi's digital inputs as inputs without pull up/down.    
