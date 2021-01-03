@@ -180,6 +180,9 @@ void *waitAndCallDigitalInterruptCB(void* arg) {
 			}
 		}
 	}
+	pthread_mutex_lock((pthread_mutex_t *) &(diConf->mutex));
+	diConf->debounceThread = -1;
+	pthread_mutex_unlock((pthread_mutex_t *) &(diConf->mutex));
 	return NULL;
 }
 
@@ -202,7 +205,9 @@ void digitalInterruptCB(int idx) {
 	} else {
 		pthread_mutex_lock((pthread_mutex_t *) &(diConf->mutex));
 		diConf->currValue = digitalRead(diConf->digitalInput);
-		pthread_cancel(diConf->debounceThread);
+		if (diConf->debounceThread != -1) {
+			pthread_cancel(diConf->debounceThread);
+		}
 		int err = pthread_create((pthread_t *) &(diConf->debounceThread), NULL,
 				waitAndCallDigitalInterruptCB, (void *) diConf);
 		if (err != 0) {
