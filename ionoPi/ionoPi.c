@@ -53,6 +53,7 @@ struct DigitalInputConfig {
 	int callBackMode;
 	struct timespec debounceTime;
 	pthread_t debounceThread;
+	int debounceThreadRunning;
 	pthread_mutex_t mutex;
 };
 
@@ -181,7 +182,7 @@ void *waitAndCallDigitalInterruptCB(void* arg) {
 		}
 	}
 	pthread_mutex_lock((pthread_mutex_t *) &(diConf->mutex));
-	diConf->debounceThread = -1;
+	diConf->debounceThreadRunning = FALSE;
 	pthread_mutex_unlock((pthread_mutex_t *) &(diConf->mutex));
 	return NULL;
 }
@@ -205,15 +206,17 @@ void digitalInterruptCB(int idx) {
 	} else {
 		pthread_mutex_lock((pthread_mutex_t *) &(diConf->mutex));
 		diConf->currValue = digitalRead(diConf->digitalInput);
-		if (diConf->debounceThread != -1) {
+		if (diConf->debounceThreadRunning) {
 			pthread_cancel(diConf->debounceThread);
 		}
 		int err = pthread_create((pthread_t *) &(diConf->debounceThread), NULL,
 				waitAndCallDigitalInterruptCB, (void *) diConf);
-		if (err != 0) {
+		if (err == 0) {
+			diConf->debounceThreadRunning = TRUE;
+			pthread_detach(diConf->debounceThread);
+		} else {
 			fprintf(stderr, "error creating new thread [%d]\n", err);
 		}
-		pthread_detach(diConf->debounceThread);
 		pthread_mutex_unlock((pthread_mutex_t *) &(diConf->mutex));
 	}
 }
@@ -327,8 +330,14 @@ void ionoPiSetDigitalDebounce(int di, int millis) {
 	diConf->debounceTime.tv_nsec = (millis % 1000) * 1000000L;
 	pinMode(di, INPUT);
 	if (millis != 0) {
-		wiringPiISR(di, INT_EDGE_BOTH, diConf->isrCallBack);
+		pthread_mutex_lock((pthread_mutex_t *) &(diConf->mutex));
+		if (diConf->debounceThreadRunning) {
+			pthread_cancel(diConf->debounceThread);
+		}
+		diConf->debounceThreadRunning = FALSE;
 		diConf->debouncedValue = digitalRead(di);
+		wiringPiISR(di, INT_EDGE_BOTH, diConf->isrCallBack);
+		pthread_mutex_unlock((pthread_mutex_t *) &(diConf->mutex));
 	}
 }
 
