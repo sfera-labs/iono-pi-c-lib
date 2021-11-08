@@ -1,4 +1,11 @@
 # Iono Pi - C library and utility program
+
+<hr>
+
+**DEPRECATED**: This library and utility are no longer updated. Use the [Iono Pi kernel module](https://github.com/sfera-labs/iono-pi-kernel-module) instead, which offers all the functionalities provided by this library and much more.
+
+<hr>
+
 C library and utility program for Iono Pi (www.sferalabs.cc/iono-pi), a professional input/output expansion for Raspberry Pi.
 
 This library provides a set of utility functions to use all the functionalities provided by Iono Pi:
