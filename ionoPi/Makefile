@@ -39,12 +39,12 @@ CFLAGS = -Wall -fPIC -I.
 # utility recompiled when object files or library modified
 $(UTILITY) : $(UTILITY_OBJ) $(LIB)
 	@ echo "Linking $@ utility ..."
-	@ $(CC) -o $@ $(LIB) $(UTILITY_OBJ) -lwiringPi -lwiringPiDev -lpthread $(LIB_OBJ)
+	@ $(CC) -o $@ $(LIB) $(UTILITY_OBJ) $(LIB_OBJ) -lwiringPi -lwiringPiDev -lpthread
 
 # library recompiled when object files modified
 $(LIB) : $(LIB_OBJ)
 	@ echo "Linking shared lib ..."
-	@ $(CC) -shared -Wl,-soname,$@ -o $@ -lwiringPi -lwiringPiDev -lpthread $(LIB_OBJ)
+	@ $(CC) -shared -Wl,-soname,$@ -o $@ $(LIB_OBJ) -lwiringPi -lwiringPiDev -lpthread
 
 # object files recompiled when source files modified (.c and .h)
 %.o : %.c $(HEADERS)
