@@ -1,7 +1,7 @@
 #
 # ionoPi
 #
-#     Copyright (C) 2016-2017 Sfera Labs S.r.l.
+#     Copyright (C) 2016-2022 Sfera Labs S.r.l.
 #
 #     For information, see the Iono Pi web site:
 #     http://www.sferalabs.cc/iono-pi
@@ -39,7 +39,7 @@ CFLAGS = -Wall -fPIC -I.
 # utility recompiled when object files or library modified
 $(UTILITY) : $(UTILITY_OBJ) $(LIB)
 	@ echo "Linking $@ utility ..."
-	@ $(CC) -o $@ $(LIB) $(UTILITY_OBJ)
+	@ $(CC) -o $@ $(LIB) $(UTILITY_OBJ) -lwiringPi -lwiringPiDev -lpthread $(LIB_OBJ)
 
 # library recompiled when object files modified
 $(LIB) : $(LIB_OBJ)
